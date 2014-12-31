@@ -3,6 +3,7 @@ var assert = require('assert')
   , mysql = require('../');
 
 var Connection = require('mysql/lib/Connection');
+var PoolConnection = require('mysql/lib/PoolConnection');
 
 var debug = require('debug')('test');
 
@@ -10,6 +11,14 @@ var exec = require('child_process').exec;
 var idgen = require('idgen');
 
 var testDB = require('../package').name + '-test-' + idgen(8);
+
+var releaseCount = 0;
+function releaseMock (release) {
+  return function () {
+    releaseCount++;
+    release.call(this);
+  };
+}
 
 before(function (done) {
   exec('mysqladmin -uroot create ' + testDB, function (err, stdout, stderr) {
@@ -65,6 +74,37 @@ describe('pool', function () {
       debug(results);
       assert.deepEqual(results, [{ '1': 1 }]);
     }).then(done, done);
+  });
+
+  it('releases implicit connections even when the query throws an error', function (_done) {
+    var pool = mysql.createPool({
+      host: '127.0.0.1',
+      database: testDB,
+      user: 'root',
+      password: '',
+      connectionLimit: 1
+    });
+
+    // Apply mock to release method
+    var _originalRelease = PoolConnection.prototype.release;
+    PoolConnection.prototype.release = releaseMock(_originalRelease);
+
+    co(function* () {
+      yield pool.query('SELECT * FROM frobisher'); // invalid syntax
+    }).then(done, done).catch(_done);
+
+    function done (err) {
+      debug(err);
+      debug('releaseCount', releaseCount);
+      var ct = releaseCount;
+      releaseCount = 0;
+      PoolConnection.prototype.release = _originalRelease;
+      if (!err) _done(new Error('failed to throw'));
+      else {
+        assert.equal(ct, 1);
+        _done();
+      }
+    }
   });
 
   it('can set the wait_timeout', function (done) {
