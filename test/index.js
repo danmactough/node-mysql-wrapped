@@ -51,6 +51,28 @@ describe('basic', function () {
     }).then(done, done);
   });
 
+  it('handles thrown errors calling query()', function (_done) {
+    var conn = mysql.createConnection({
+      host: '127.0.0.1',
+      database: testDB,
+      user: 'root',
+      password: ''
+    });
+
+    co(function* () {
+      yield conn.query(function(){});
+    }).then(done, done).catch(_done);
+
+    function done (err) {
+      debug(err);
+      if (!err) _done(new Error('failed to throw'));
+      else {
+        assert(err instanceof Error);
+        _done();
+      }
+    }
+  });
+
 });
 
 describe('pool', function () {

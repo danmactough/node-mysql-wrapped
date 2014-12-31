@@ -120,7 +120,6 @@ function customThunkify (query) {
         debug(q.sql);
       }
       catch (e) {
-        e.sql = q.sql;
         done(e);
       }
     };
