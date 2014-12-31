@@ -1,0 +1,18 @@
+{
+  "esnext": true,
+  "node": true,
+  "eqeqeq": false,
+  "forin": true,
+  "noarg": true,
+  "undef": true,
+  "unused": true,
+  "strict": false,
+  "trailing": true,
+  "expr": true,
+  "globalstrict": true,
+  "nonstandard": true,
+  "laxcomma": true,
+  "sub": true,
+  "regexdash": true,
+  "maxerr": 10000
+}
