@@ -12,6 +12,14 @@ exports.escape   = mysql.escape;
 exports.escapeId = mysql.escapeId;
 exports.format   = mysql.format;
 
+// Monkey-patch this method to add some useful debugging;
+var handleProtocolHandshake = Connection.prototype._handleProtocolHandshake;
+Connection.prototype._handleProtocolHandshake = function (packet) {
+  handleProtocolHandshake.call(this, packet);
+  debug('got connection id:', this.threadId);
+  debug('connection state:', this.state);
+};
+
 exports.createConnection = function createConnection (settings) {
   var conn = mysql.createConnection(settings);
   conn.on('error', onConnectionError);
