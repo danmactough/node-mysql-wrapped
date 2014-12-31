@@ -1,6 +1,8 @@
 var debug = require('debug')('mysql-wrapped');
 var mysql = require('mysql');
 
+var slice = Array.prototype.slice;
+
 // node-mysql core
 var Connection       = require('mysql/lib/Connection');
 
@@ -24,7 +26,7 @@ exports.createConnection = function createConnection (settings) {
   var conn = mysql.createConnection(settings);
   conn.on('error', onConnectionError);
   conn.query = function* () {
-    var args = [].slice.call(arguments);
+    var args = slice.call(arguments);
     args.unshift(conn);
     return yield query.apply(mysql, args);
   };
@@ -32,7 +34,7 @@ exports.createConnection = function createConnection (settings) {
 };
 
 function* query () {
-  var args = [].slice.call(arguments);
+  var args = slice.call(arguments);
   var conn;
   if (args[0] instanceof Connection) {
     conn = args.shift();
@@ -55,7 +57,7 @@ function onConnectionError (err) {
 // Custom thunkify to not throw away useful information
 function customThunkify (query) {
   return function () {
-    var args = [].slice.call(arguments);
+    var args = slice.call(arguments);
     var ctx = this;
     return function (done) {
       var called;
