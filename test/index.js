@@ -46,7 +46,26 @@ describe('basic', function () {
 
 describe('pool', function () {
 
-  it('works');
+  it('works', function (done) {
+    var pool = mysql.createPool({
+      host: '127.0.0.1',
+      database: testDB,
+      user: 'root',
+      password: '',
+      connectionLimit: 1
+    });
+    assert.equal(pool.getConnection.constructor.name, 'GeneratorFunction');
+    assert.equal(pool.query.constructor.name, 'GeneratorFunction');
+
+    co(function* () {
+      var conn = yield pool.getConnection();
+      assert.equal(conn.query.constructor.name, 'GeneratorFunction');
+      assert(conn instanceof Connection);
+      var results = yield conn.query('SELECT 1');
+      debug(results);
+      assert.deepEqual(results, [{ '1': 1 }]);
+    }).then(done, done);
+  });
 
 });
 
