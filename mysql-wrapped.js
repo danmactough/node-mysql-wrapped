@@ -7,6 +7,7 @@ var slice = Array.prototype.slice;
 // node-mysql core
 var Connection       = require('mysql/lib/Connection');
 var Pool             = require('mysql/lib/Pool');
+var PoolConnection   = require('mysql/lib/PoolConnection');
 
 // proxy what node-mysql core exposes
 exports.createQuery  = Connection.createQuery;
@@ -52,16 +53,23 @@ exports.createPool = function (settings) {
 function* query () {
   var args = slice.call(arguments);
   var conn;
+  var tQuery;
   var doRelease = false;
   // Optionally, allow consumer to reuse connection and handle release
   if (args[0] instanceof Connection) {
     conn = args.shift();
+    if (conn instanceof PoolConnection) {
+      tQuery = customThunkify(PoolConnection.prototype.query.bind(conn));
+    }
+    else {
+      tQuery = customThunkify(Connection.prototype.query.bind(conn));
+    }
   }
   else if (this.pool) {
     conn = yield this.pool.getConnection();
+    tQuery = customThunkify(PoolConnection.prototype.query.bind(conn));
     doRelease = true;
   }
-  var tQuery = customThunkify(Connection.prototype.query.bind(conn));
   try {
     var results = yield tQuery.apply(null, args);
     doRelease && conn.release();
