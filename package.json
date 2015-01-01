@@ -1,6 +1,6 @@
 {
   "name": "mysql-wrapped",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A wrapped version of node-mysql exposing a simple generator-based interface ideal for co- or koa-based applications.",
   "main": "mysql-wrapped.js",
   "scripts": {
