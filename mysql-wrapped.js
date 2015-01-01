@@ -72,11 +72,17 @@ function* query () {
   }
   try {
     var results = yield tQuery.apply(null, args);
-    doRelease && conn.release();
+    if (doRelease) {
+      debug('released connection id:', conn.threadId);
+      conn.release();
+    }
     return results[0];
   }
   catch (e) {
-    doRelease && conn.release();
+    if (doRelease) {
+      debug('released connection id:', conn.threadId);
+      conn.release();
+    }
     throw e;
   }
 }
