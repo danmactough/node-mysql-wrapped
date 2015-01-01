@@ -129,6 +129,46 @@ describe('pool', function () {
     }
   });
 
+  it('allows the user to manage the connection', function (done) {
+    var pool = mysql.createPool({
+      host: '127.0.0.1',
+      database: testDB,
+      user: 'root',
+      password: '',
+      connectionLimit: 1
+    });
+    co(function* () {
+      assert.equal(pool._allConnections.length, 0);
+      assert.equal(pool._freeConnections.length, 0);
+      var conn = yield pool.getConnection();
+      assert.equal(pool._allConnections.length, 1);
+      assert.equal(pool._freeConnections.length, 0);
+      yield conn.query("SELECT 1");
+      assert.equal(pool._allConnections.length, 1);
+      assert.equal(pool._freeConnections.length, 0);
+      conn.release();
+      assert.equal(pool._allConnections.length, 1);
+      assert.equal(pool._freeConnections.length, 1);
+    }).then(done, done);
+  });
+
+  it('automatically manages the connection', function (done) {
+    var pool = mysql.createPool({
+      host: '127.0.0.1',
+      database: testDB,
+      user: 'root',
+      password: '',
+      connectionLimit: 1
+    });
+    co(function* () {
+      assert.equal(pool._allConnections.length, 0);
+      assert.equal(pool._freeConnections.length, 0);
+      yield pool.query("SELECT 1");
+      assert.equal(pool._allConnections.length, 1);
+      assert.equal(pool._freeConnections.length, 1);
+    }).then(done, done);
+  });
+
   it('can set the wait_timeout', function (done) {
     var pool = mysql.createPool({
       host: '127.0.0.1',
