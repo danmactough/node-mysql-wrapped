@@ -25,8 +25,8 @@ Connection.prototype._handleProtocolHandshake = function (packet) {
   debug('connection state:', this.state);
 };
 
-exports.createConnection = function createConnection (settings) {
-  var conn = mysql.createConnection(settings);
+exports.createConnection = function createConnection (conf) {
+  var conn = mysql.createConnection(conf);
   conn.on('error', onConnectionError);
   conn.query = function* () {
     var args = slice.call(arguments);
@@ -36,9 +36,9 @@ exports.createConnection = function createConnection (settings) {
   return conn;
 };
 
-exports.createPool = function (settings) {
+exports.createPool = function (conf) {
   var ctx = {};
-  var pool = ctx.pool = mysql.createPool(settings);
+  var pool = ctx.pool = mysql.createPool(conf);
   // Attach error listener to each connection
   pool.on('connection', onConnection);
   pool.getConnection = function* () {
